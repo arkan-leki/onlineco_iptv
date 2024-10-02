@@ -101,9 +101,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         decoration: kDecorBackground,
         child: BlocBuilder<SettingsCubit, SettingsState>(
           builder: (context, stateSetting) {
-            return AzulEnvatoChecker(
-              uniqueKey: stateSetting.setting,
-              successPage: SafeArea(
+            return Container(
+              child: SafeArea(
                 child: BlocConsumer<AuthBloc, AuthState>(
                   listener: (context, state) {
                     if (state is AuthFailed) {

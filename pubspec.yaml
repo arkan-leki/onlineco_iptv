@@ -25,7 +25,7 @@ dependencies:
   wakelock: ^0.6.2
 
   #Logic
-  azul_envato_checker: ^0.0.6+6
+#  azul_envato_checker: ^0.0.6+6
   flutter_bloc: ^8.1.6
   get: ^4.6.6
   intl: ^0.19.0

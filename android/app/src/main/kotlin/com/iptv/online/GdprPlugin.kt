@@ -1,4 +1,4 @@
-package com.iptv.azul
+package com.iptv.online
 
 
 import android.app.Activity

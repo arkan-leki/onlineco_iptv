@@ -40,12 +40,12 @@ class AppBarWelcome extends StatelessWidget {
                       dateNowWelcome(),
                       style: Get.textTheme.titleSmall,
                     ),
-                    Text(
-                      "Expiration: ${expirationDate(userInfo!.expDate)}",
-                      style: Get.textTheme.titleSmall!.copyWith(
-                        color: kColorHint,
-                      ),
-                    ),
+                    // Text(
+                    //   "Expiration: ${expirationDate(userInfo!.expDate)}",
+                    //   style: Get.textTheme.titleSmall!.copyWith(
+                    //     color: kColorHint,
+                    //   ),
+                    // ),
                   ],
                 );
               }

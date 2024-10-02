@@ -32,39 +32,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Expanded(
                           child: Column(
                             children: [
-                              Expanded(
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: kColorCardLight,
-                                    borderRadius: BorderRadius.circular(5),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 20,
-                                    horizontal: 20,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        dateNowWelcome(),
-                                        style: Get.textTheme.titleSmall,
-                                      ),
-                                      const SizedBox(height: 5),
-                                      if (userInfo.userInfo!.expDate != null)
-                                        Text(
-                                          "Expiration: ${expirationDate(userInfo.userInfo!.expDate)}",
-                                          style: Get.textTheme.titleSmall!
-                                              .copyWith(
-                                            color: kColorHint,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              // Expanded(
+                              //   child: Container(
+                              //     width: double.infinity,
+                              //     decoration: BoxDecoration(
+                              //       color: kColorCardLight,
+                              //       borderRadius: BorderRadius.circular(5),
+                              //     ),
+                              //     padding: const EdgeInsets.symmetric(
+                              //       vertical: 20,
+                              //       horizontal: 20,
+                              //     ),
+                              //     child: Column(
+                              //       crossAxisAlignment:
+                              //           CrossAxisAlignment.start,
+                              //       mainAxisAlignment: MainAxisAlignment.center,
+                              //       children: [
+                              //         Text(
+                              //           dateNowWelcome(),
+                              //           style: Get.textTheme.titleSmall,
+                              //         ),
+                              //         const SizedBox(height: 5),
+                              //         if (userInfo.userInfo!.expDate != null)
+                              //           Text(
+                              //             "Expiration: ${expirationDate(userInfo.userInfo!.expDate)}",
+                              //             style: Get.textTheme.titleSmall!
+                              //                 .copyWith(
+                              //               color: kColorHint,
+                              //             ),
+                              //           ),
+                              //       ],
+                              //     ),
+                              //   ),
+                              // ),
                               const SizedBox(height: 10),
                               Expanded(
                                 child: Container(
@@ -170,12 +170,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       InkWell(
                         onTap: () async {
                           await launchUrlString(
-                            "https://mouadzizi.me",
+                            "https://onlineco.net",
                             mode: LaunchMode.externalApplication,
                           );
                         },
                         child: Text(
-                          ' @Azul Mouad',
+                          ' @Online Company 2024',
                           style: Get.textTheme.titleSmall!.copyWith(
                             fontSize: 12.sp,
                             color: Colors.blue,

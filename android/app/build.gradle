@@ -51,7 +51,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.iptv.azul"
+        applicationId "com.iptv.online"
         minSdkVersion 21
         targetSdkVersion 33
         versionCode flutterVersionCode.toInteger()

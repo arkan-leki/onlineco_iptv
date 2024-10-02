@@ -168,30 +168,30 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'By using this application, you agree to the',
-                  style: Get.textTheme.titleSmall!.copyWith(
-                    fontSize: 12.sp,
-                    color: Colors.grey,
-                  ),
-                ),
-                InkWell(
-                  onTap: () async {
-                    await launchUrlString(kPrivacy);
-                  },
-                  child: Text(
-                    ' Terms of Services.',
-                    style: Get.textTheme.titleSmall!.copyWith(
-                      fontSize: 12.sp,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.center,
+            //   children: [
+            //     Text(
+            //       'By using this application, you agree to the',
+            //       style: Get.textTheme.titleSmall!.copyWith(
+            //         fontSize: 12.sp,
+            //         color: Colors.grey,
+            //       ),
+            //     ),
+            //     InkWell(
+            //       onTap: () async {
+            //         await launchUrlString(kPrivacy);
+            //       },
+            //       child: Text(
+            //         ' Terms of Services.',
+            //         style: Get.textTheme.titleSmall!.copyWith(
+            //           fontSize: 12.sp,
+            //           color: Colors.blue,
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
             AdmobWidget.getBanner(),
           ],
         ),
