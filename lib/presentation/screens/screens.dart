@@ -40,7 +40,6 @@ import '../../repository/models/channel_serie.dart';
 import '../../repository/models/epg.dart';
 import '../../repository/models/movie_detail.dart';
 import '../../repository/models/serie_details.dart';
-import '../../repository/models/user.dart';
 import '../../repository/models/watching.dart';
 import '../widgets/widgets.dart';
 
