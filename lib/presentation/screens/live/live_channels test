@@ -1,0 +1,95 @@
+part of '../screens.dart';
+
+class LiveChannelsScreen extends StatefulWidget {
+  const LiveChannelsScreen({Key? key, required this.catyId}) : super(key: key);
+  final String catyId;
+
+  @override
+  State<LiveChannelsScreen> createState() => _LiveChannelsScreenState();
+}
+
+class _LiveChannelsScreenState extends State<LiveChannelsScreen> {
+  VlcPlayerController? _videoPlayerController;
+  String? selectedStreamId;
+  ChannelLive? channelLive;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Use the passed catyId to fetch channels for this category
+    context.read<ChannelsBloc>().add(GetLiveChannelsEvent(
+      catyId: widget.catyId,
+      typeCategory: TypeCategory.live,
+    ));
+  }
+
+  @override
+  void dispose() async {
+    super.dispose();
+    if (_videoPlayerController != null) {
+      await _videoPlayerController!.stopRendererScanning();
+      await _videoPlayerController!.dispose();
+    }
+  }
+
+  // Open selected video in full-screen mode
+  void _playChannel(ChannelLive channel) async {
+    final user = (context.read<AuthBloc>().state as AuthSuccess).user;
+    final videoUrl = "${user.serverInfo!.serverUrl}/${user.userInfo!.username}/${user.userInfo!.password}/${channel.streamId}";
+
+    _videoPlayerController = VlcPlayerController.network(
+      videoUrl,
+      hwAcc: HwAcc.full,
+      autoPlay: true,
+    );
+
+    setState(() {
+      channelLive = channel;
+      selectedStreamId = channel.streamId;
+    });
+
+    // Navigate to full-screen player
+    Get.to(() => LiveFullVideoScreen(
+      isLive: true,
+      link: videoUrl,
+      title: channel.name ?? "",
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: BlocBuilder<ChannelsBloc, ChannelsState>(
+        builder: (context, state) {
+          if (state is ChannelsLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is ChannelsLiveSuccess) {
+            final channels = state.channels;
+
+            return GridView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+              itemCount: channels.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 6,
+              ),
+              itemBuilder: (_, i) {
+                final channel = channels[i];
+                return CardLiveItem(
+                  title: channel.name ?? "",
+                  image: channel.streamIcon,
+                  onTap: () => _playChannel(channel),  // Play channel on tap
+                );
+              },
+            );
+          }
+
+          return const Center(child: Text("Failed to load data..."));
+        },
+      ),
+    );
+  }
+}

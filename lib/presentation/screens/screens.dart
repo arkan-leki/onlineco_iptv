@@ -40,7 +40,6 @@ import '../../repository/models/channel_serie.dart';
 import '../../repository/models/epg.dart';
 import '../../repository/models/movie_detail.dart';
 import '../../repository/models/serie_details.dart';
-import '../../repository/models/user.dart';
 import '../../repository/models/watching.dart';
 import '../widgets/widgets.dart';
 
@@ -55,6 +54,7 @@ part 'movie/movie_details.dart';
 part 'new_welcome.dart';
 part 'osnch.dart';
 part 'player/full_video.dart';
+part 'player/live_full_video.dart';
 part 'player/player_video.dart';
 part 'series/serie_details.dart';
 part 'series/serie_seasons.dart';
