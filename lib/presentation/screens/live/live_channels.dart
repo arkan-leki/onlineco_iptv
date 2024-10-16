@@ -11,10 +11,8 @@ class LiveChannelsScreen extends StatefulWidget {
 class _LiveChannelsScreenState extends State<LiveChannelsScreen> {
   String keySearch = "";
   ChannelLive? channelLive;
-
-VlcPlayerController? _videoPlayerController;
+  VlcPlayerController? _videoPlayerController;
   String? selectedStreamId;
-  //ChannelLive? channelLive;
 
   @override
   void initState() {
@@ -39,13 +37,7 @@ VlcPlayerController? _videoPlayerController;
   // Open selected video in full-screen mode
   void _playChannel(ChannelLive channel) async {
     final user = (context.read<AuthBloc>().state as AuthSuccess).user;
-    final videoUrl = "${user.serverInfo!.serverUrl}/${user.userInfo!.username}/${user.userInfo!.password}/${channel.streamId}";
-
-    _videoPlayerController = VlcPlayerController.network(
-      videoUrl,
-      hwAcc: HwAcc.full,
-      autoPlay: true,
-    );
+    final baseUrl = "${user.serverInfo!.serverUrl}/${user.userInfo!.username}/${user.userInfo!.password}";
 
     setState(() {
       channelLive = channel;
@@ -55,8 +47,14 @@ VlcPlayerController? _videoPlayerController;
     // Navigate to full-screen player
     Get.to(() => LiveFullVideoScreen(
       isLive: true,
-      link: videoUrl,
+      baseUrl: baseUrl,
       title: channel.name ?? "",
+      channels: context.read<ChannelsBloc>().state is ChannelsLiveSuccess
+          ? (context.read<ChannelsBloc>().state as ChannelsLiveSuccess).channels
+          : [],
+      initialIndex: context.read<ChannelsBloc>().state is ChannelsLiveSuccess
+          ? (context.read<ChannelsBloc>().state as ChannelsLiveSuccess).channels.indexOf(channel)
+          : 0,
     ));
   }
 
@@ -108,10 +106,8 @@ VlcPlayerController? _videoPlayerController;
                     return BlocBuilder<AuthBloc, AuthState>(
                       builder: (context, stateAuth) {
                         if (stateAuth is AuthLoading) {
-                          // Show a loading indicator while the authentication state is loading
                           return Center(child: CircularProgressIndicator());
                         } else if (stateAuth is AuthSuccess) {
-                          // Safe to access user data only if the state is AuthSuccess
                           final user = stateAuth.user;
 
                           return GridView.builder(
@@ -131,23 +127,16 @@ VlcPlayerController? _videoPlayerController;
                                 title: model.name ?? "",
                                 image: model.streamIcon,
                                 onTap: () {
-                                  // Navigate to the full-screen view for the selected channel
-                                  Get.to(() => LiveFullVideoScreen(
-                                    isLive: true,
-                                    link: link,
-                                    title: model.name ?? "",
-                                  ));
+                                  _playChannel(model);
                                 },
                               );
                             },
                           );
                         } else {
-                          // Show an error message or alternative UI if the authentication failed or is in another unexpected state
                           return const Center(child: Text("Unable to load content. Please try again."));
                         }
                       },
                     );
-
                   }
                   return const Center(child: Text("Failed to load data..."));
                 },
@@ -156,106 +145,6 @@ VlcPlayerController? _videoPlayerController;
           ],
         ),
       ),
-    );
-  }
-}
-
-
-class CardEpgStream extends StatelessWidget {
-  const CardEpgStream({super.key, required this.streamId});
-  final String? streamId;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: streamId == null
-          ? const SizedBox()
-          : FutureBuilder<List<EpgModel>>(
-              future: IpTvApi.getEPGbyStreamId(streamId ?? ""),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: SizedBox(
-                      width: 30,
-                      height: 30,
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                } else if (!snapshot.hasData) {
-                  return const SizedBox();
-                }
-                final list = snapshot.data;
-
-                return Container(
-                  decoration: const BoxDecoration(
-                      color: kColorCardLight,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(10),
-                      )),
-                  margin: const EdgeInsets.only(top: 10),
-                  child: ListView.separated(
-                    itemCount: list!.length,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 10,
-                    ),
-                    itemBuilder: (_, i) {
-                      final model = list[i];
-                      String description =
-                          utf8.decode(base64.decode(model.description ?? ""));
-
-                      String title =
-                          utf8.decode(base64.decode(model.title ?? ""));
-                      return CardEpg(
-                        title:
-                            "${getTimeFromDate(model.start ?? "")} - ${getTimeFromDate(model.end ?? "")} - $title",
-                        description: description,
-                        isSameTime: checkEpgTimeIsNow(
-                            model.start ?? "", model.end ?? ""),
-                      );
-                    },
-                    separatorBuilder: (_, i) {
-                      return const SizedBox(
-                        height: 10,
-                      );
-                    },
-                  ),
-                );
-              }),
-    );
-  }
-}
-
-class CardEpg extends StatelessWidget {
-  const CardEpg(
-      {super.key,
-      required this.title,
-      required this.description,
-      required this.isSameTime});
-  final String title;
-  final String description;
-  final bool isSameTime;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: Get.textTheme.bodyLarge!.copyWith(
-            fontWeight: FontWeight.bold,
-            fontSize: 15.sp,
-            color: isSameTime ? kColorPrimaryDark : Colors.white,
-          ),
-        ),
-        Text(
-          description,
-          style: Get.textTheme.bodyMedium!.copyWith(
-            color: Colors.white70,
-          ),
-        ),
-      ],
     );
   }
 }

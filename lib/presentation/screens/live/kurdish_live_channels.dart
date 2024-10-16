@@ -1,7 +1,7 @@
 part of '../screens.dart';
 
 class KurdishLiveChannelsScreen extends StatefulWidget {
-  const KurdishLiveChannelsScreen({super.key, required this.catyId});
+  const KurdishLiveChannelsScreen({Key? key, required this.catyId}) : super(key: key);
   final String catyId;
 
   @override
@@ -11,16 +11,55 @@ class KurdishLiveChannelsScreen extends StatefulWidget {
 class _KurdishLiveChannelsScreenState extends State<KurdishLiveChannelsScreen> {
   String keySearch = "";
   ChannelLive? channelLive;
+  VlcPlayerController? _videoPlayerController;
+  String? selectedStreamId;
 
   @override
   void initState() {
     super.initState();
+
     // Fetch the channels for the selected category
     context.read<ChannelsBloc>().add(GetLiveChannelsEvent(
       catyId: widget.catyId,
       typeCategory: TypeCategory.live,
     ));
   }
+
+
+  @override
+  void dispose() async {
+    super.dispose();
+    if (_videoPlayerController != null) {
+      await _videoPlayerController!.stopRendererScanning();
+      await _videoPlayerController!.dispose();
+    }
+  }
+
+
+  // Open selected video in full-screen mode
+  void _playChannel(ChannelLive channel) async {
+    final user = (context.read<AuthBloc>().state as AuthSuccess).user;
+    final baseUrl = "${user.serverInfo!.serverUrl}/${user.userInfo!.username}/${user.userInfo!.password}";
+
+    setState(() {
+      channelLive = channel;
+      selectedStreamId = channel.streamId;
+    });
+
+    // Navigate to full-screen player
+    Get.to(() => LiveFullVideoScreen(
+      isLive: true,
+      baseUrl: baseUrl,
+      title: channel.name ?? "",
+      channels: context.read<ChannelsBloc>().state is ChannelsLiveSuccess
+          ? (context.read<ChannelsBloc>().state as ChannelsLiveSuccess).channels
+          : [],
+      initialIndex: context.read<ChannelsBloc>().state is ChannelsLiveSuccess
+          ? (context.read<ChannelsBloc>().state as ChannelsLiveSuccess).channels.indexOf(channel)
+          : 0,
+    ));
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -84,12 +123,7 @@ class _KurdishLiveChannelsScreenState extends State<KurdishLiveChannelsScreen> {
             title: model.name ?? "",
             image: model.streamIcon,
             onTap: () {
-              // Navigate to the full-screen view for the selected channel
-              Get.to(() => LiveFullVideoScreen(
-                isLive: true,
-                link: link,
-                title: model.name ?? "",
-              ));
+              _playChannel(model);
             },
           );
         },

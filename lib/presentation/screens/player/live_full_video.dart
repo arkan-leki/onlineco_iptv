@@ -3,12 +3,16 @@ part of '../screens.dart';
 class LiveFullVideoScreen extends StatefulWidget {
   const LiveFullVideoScreen({
     super.key,
-    required this.link,
+    required this.baseUrl,
     required this.title,
+    required this.channels,
+    required this.initialIndex,
     this.isLive = false,
   });
-  final String link;
+  final String baseUrl;
   final String title;
+  final List<ChannelLive> channels;
+  final int initialIndex;
   final bool isLive;
 
   @override
@@ -17,6 +21,7 @@ class LiveFullVideoScreen extends StatefulWidget {
 
 class _LiveFullVideoScreenState extends State<LiveFullVideoScreen> {
   late VlcPlayerController _videoPlayerController;
+  int currentIndex = 0;
   bool isPlayed = true;
   bool progress = true;
   bool showControllersVideo = true;
@@ -39,7 +44,6 @@ class _LiveFullVideoScreenState extends State<LiveFullVideoScreen> {
         _currentBright = brightness;
       }
 
-      ///default volume is half
       VolumeController().listener((volume) {
         setState(() => _currentVolume = volume);
       });
@@ -53,17 +57,9 @@ class _LiveFullVideoScreenState extends State<LiveFullVideoScreen> {
 
   @override
   void initState() {
-    Wakelock.enable();
-    _videoPlayerController = VlcPlayerController.network(
-      widget.link,
-      hwAcc: HwAcc.full,
-      autoPlay: true,
-      autoInitialize: true,
-      options: VlcPlayerOptions(),
-    );
-
     super.initState();
-    _videoPlayerController.addListener(listener);
+    currentIndex = widget.initialIndex;
+    _initializeVideoPlayer(_getChannelLink(widget.channels[currentIndex]));
     _settingPage();
 
     timer = Timer.periodic(const Duration(seconds: 5), (timer) {
@@ -75,26 +71,35 @@ class _LiveFullVideoScreenState extends State<LiveFullVideoScreen> {
     });
   }
 
-  void listener() async {
+  String _getChannelLink(ChannelLive channel) {
+    return "${widget.baseUrl}/${channel.streamId}";
+  }
+
+  void _initializeVideoPlayer(String link) {
+    _videoPlayerController = VlcPlayerController.network(
+      link,
+      hwAcc: HwAcc.full,
+      autoPlay: true,
+      autoInitialize: true,
+      options: VlcPlayerOptions(),
+    );
+    _videoPlayerController.addListener(_videoListener);
+  }
+
+  void _videoListener() {
     if (!mounted) return;
 
-    if (progress) {
-      if (_videoPlayerController.value.isPlaying) {
-        setState(() {
-          progress = false;
-        });
-      }
+    if (progress && _videoPlayerController.value.isPlaying) {
+      setState(() => progress = false);
     }
 
     if (_videoPlayerController.value.isInitialized) {
-      var oPosition = _videoPlayerController.value.position;
-      var oDuration = _videoPlayerController.value.duration;
+      final oPosition = _videoPlayerController.value.position;
+      final oDuration = _videoPlayerController.value.duration;
 
       if (oDuration.inHours == 0) {
-        var strPosition = oPosition.toString().split('.')[0];
-        var strDuration = oDuration.toString().split('.')[0];
-        position = "${strPosition.split(':')[1]}:${strPosition.split(':')[2]}";
-        duration = "${strDuration.split(':')[1]}:${strDuration.split(':')[2]}";
+        position = "${oPosition.toString().split(':')[1]}:${oPosition.toString().split(':')[2]}";
+        duration = "${oDuration.toString().split(':')[1]}:${oDuration.toString().split(':')[2]}";
       } else {
         position = oPosition.toString().split('.')[0];
         duration = oDuration.toString().split('.')[0];
@@ -105,224 +110,150 @@ class _LiveFullVideoScreenState extends State<LiveFullVideoScreen> {
     }
   }
 
+  Future<void> _switchChannel(int direction) async {
+    // Calculate the new channel index
+    currentIndex = (currentIndex + direction) % widget.channels.length;
+    if (currentIndex < 0) currentIndex = widget.channels.length - 1;
+
+    String newLink = _getChannelLink(widget.channels[currentIndex]);
+
+    // Stop the current video stream and set a new one without disposing the controller
+    await _videoPlayerController.stop();
+    await _videoPlayerController.setMediaFromNetwork(newLink);
+    _videoPlayerController.play();
+  }
+
   void _onSliderPositionChanged(double progress) {
     setState(() {
       sliderValue = progress.floor().toDouble();
     });
-    //convert to Milliseconds since VLC requires MS to set time
-    _videoPlayerController.setTime(sliderValue.toInt() * 1000);
+    _videoPlayerController.setTime((sliderValue * 1000).toInt());
   }
 
   @override
-  void dispose() async {
-    super.dispose();
-    await _videoPlayerController.stopRendererScanning();
-    await _videoPlayerController.dispose();
+  void dispose() {
+    _videoPlayerController.dispose();
     timer.cancel();
     VolumeController().removeListener();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("SIZE: ${MediaQuery.of(context).size.width}");
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          Container(
-            width: getSize(context).width,
-            height: getSize(context).height,
-            color: Colors.black,
-            child: VlcPlayer(
-              controller: _videoPlayerController,
-              aspectRatio: 16 / 9,
-              virtualDisplay: true,
-              placeholder: const SizedBox(),
-            ),
-          ),
-
-          if (progress)
-            const Center(
-                child: CircularProgressIndicator(
-              color: kColorPrimary,
-            )),
-
-          ///Controllers
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                showControllersVideo = !showControllersVideo;
-              });
-            },
-            child: Container(
+    return Focus(
+      autofocus: true,
+      onKey: (node, event) {
+        if (event is RawKeyDownEvent) {
+          if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+            _switchChannel(-1);
+          } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+            _switchChannel(1);
+          }
+        }
+        return KeyEventResult.handled;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            Container(
               width: getSize(context).width,
               height: getSize(context).height,
-              color: Colors.transparent,
-              child: AnimatedSize(
-                duration: const Duration(milliseconds: 200),
-                child: !showControllersVideo
-                    ? const SizedBox()
-                    : SafeArea(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            ///Back & Title
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                IconButton(
-                                  focusColor: kColorFocus,
-                                  onPressed: () async {
-                                    await Future.delayed(
-                                            const Duration(milliseconds: 1000))
-                                        .then((value) {
-                                      Get.back(
-                                          result: progress
-                                              ? null
-                                              : [
-                                                  sliderValue,
-                                                  _videoPlayerController
-                                                      .value.duration.inSeconds
-                                                      .toDouble()
-                                                ]);
-                                    });
-                                  },
-                                  icon: Icon(
-                                    FontAwesomeIcons.chevronLeft,
-                                    size: 19.sp,
-                                  ),
-                                ),
-                                const SizedBox(width: 5),
-                                Expanded(
-                                  child: Text(
-                                    widget.title,
-                                    maxLines: 1,
-                                    style: Get.textTheme.labelLarge!.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18.sp,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            ///Slider & Play/Pause
-                            if (!progress && !widget.isLive)
-                              Align(
-                                alignment: Alignment.bottomCenter,
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Slider(
-                                        activeColor: kColorPrimary,
-                                        inactiveColor: Colors.white,
-                                        value: sliderValue,
-                                        min: 0.0,
-                                        max: (!validPosition)
-                                            ? 1.0
-                                            : _videoPlayerController
-                                                .value.duration.inSeconds
-                                                .toDouble(),
-                                        onChanged: validPosition
-                                            ? _onSliderPositionChanged
-                                            : null,
-                                      ),
-                                    ),
-                                    Text(
-                                      "$position / $duration",
-                                      style: Get.textTheme.titleSmall!.copyWith(
-                                        fontSize: 15.sp,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
+              color: Colors.black,
+              child: VlcPlayer(
+                controller: _videoPlayerController,
+                aspectRatio: 16 / 9,
+                virtualDisplay: true,
+                placeholder: const Center(child: CircularProgressIndicator()),
               ),
             ),
-          ),
+            if (progress)
+              const Center(child: CircularProgressIndicator(color: kColorPrimary)),
 
-          if (!progress && showControllersVideo)
-
-            ///Controllers Light, Lock...
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                if (!isTv(context))
-                  FillingSlider(
-                    direction: FillingSliderDirection.vertical,
-                    initialValue: _currentVolume,
-                    onFinish: (value) async {
-                      VolumeController().setVolume(value);
-                      setState(() {
-                        _currentVolume = value;
-                      });
-                    },
-                    fillColor: Colors.white54,
-                    height: 40.h,
-                    width: 30,
-                    child: Icon(
-                      _currentVolume < .1
-                          ? FontAwesomeIcons.volumeXmark
-                          : _currentVolume < .7
-                              ? FontAwesomeIcons.volumeLow
-                              : FontAwesomeIcons.volumeHigh,
-                      color: Colors.black,
-                      size: 13,
-                    ),
-                  ),
-                Center(
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        if (isPlayed) {
-                          _videoPlayerController.pause();
-                          isPlayed = false;
-                        } else {
-                          _videoPlayerController.play();
-                          isPlayed = true;
-                        }
-                      });
-                    },
-                    icon: Icon(
-                      isPlayed ? FontAwesomeIcons.pause : FontAwesomeIcons.play,
-                      size: 24.sp,
-                    ),
-                  ),
+            GestureDetector(
+              onTap: () {
+                setState(() => showControllersVideo = !showControllersVideo);
+              },
+              child: Container(
+                width: getSize(context).width,
+                height: getSize(context).height,
+                color: Colors.transparent,
+                child: AnimatedSize(
+                  duration: const Duration(milliseconds: 200),
+                  child: !showControllersVideo
+                      ? const SizedBox()
+                      : SafeArea(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  IconButton(
+                                    focusColor: kColorFocus,
+                                    onPressed: () async {
+                                      await Future.delayed(const Duration(milliseconds: 1000))
+                                          .then((value) {
+                                        Get.back(
+                                          result: progress
+                                              ? null
+                                              : [sliderValue, _videoPlayerController.value.duration.inSeconds.toDouble()],
+                                        );
+                                      });
+                                    },
+                                    icon: Icon(
+                                      FontAwesomeIcons.chevronLeft,
+                                      size: 19.sp,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Expanded(
+                                    child: Text(
+                                      widget.title,
+                                      maxLines: 1,
+                                      style: Get.textTheme.labelLarge!.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18.sp,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (!progress && !widget.isLive)
+                                Align(
+                                  alignment: Alignment.bottomCenter,
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Slider(
+                                          activeColor: kColorPrimary,
+                                          inactiveColor: Colors.white,
+                                          value: sliderValue,
+                                          min: 0.0,
+                                          max: (!validPosition)
+                                              ? 1.0
+                                              : _videoPlayerController.value.duration.inSeconds.toDouble(),
+                                          onChanged: validPosition ? _onSliderPositionChanged : null,
+                                        ),
+                                      ),
+                                      Text(
+                                        "$position / $duration",
+                                        style: Get.textTheme.titleSmall!.copyWith(fontSize: 15.sp),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                 ),
-                if (!isTv(context))
-                  FillingSlider(
-                    initialValue: _currentBright,
-                    direction: FillingSliderDirection.vertical,
-                    fillColor: Colors.white54,
-                    height: 40.h,
-                    width: 30,
-                    onFinish: (value) async {
-                      bool success =
-                          await _screenBrightnessUtil.setBrightness(value);
-
-                      setState(() {
-                        _currentBright = value;
-                      });
-                    },
-                    child: Icon(
-                      _currentBright < .1
-                          ? FontAwesomeIcons.moon
-                          : _currentVolume < .7
-                              ? FontAwesomeIcons.sun
-                              : FontAwesomeIcons.solidSun,
-                      color: Colors.black,
-                      size: 13,
-                    ),
-                  ),
-              ],
+              ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
