@@ -50,7 +50,7 @@ class _LiveChannelsScreenState extends State<LiveChannelsScreen> {
     });
 
     // Navigate to full-screen player
-    Get.to(() => LiveFullVideoScreen(
+    Get.to(() => FullVideoScreen(
       isLive: true,
       link: videoUrl,
       title: channel.name ?? "",
