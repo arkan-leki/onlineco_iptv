@@ -51,9 +51,9 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.iptv.online"
+        applicationId "com.kit.online_iptv"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled = true
@@ -72,7 +72,7 @@ android {
 //            debuggable true
 //            shrinkResources false
 //            minifyEnabled false
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
         }
     }
 

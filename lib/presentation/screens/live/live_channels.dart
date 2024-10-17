@@ -206,14 +206,14 @@ class _ListChannelsScreen extends State<LiveChannelsScreen> {
                                                     SliverGridDelegateWithFixedCrossAxisCount(
                                                   crossAxisCount:
                                                       selectedVideo == null
-                                                          ? 2
+                                                          ? 4
                                                           : 1,
                                                   mainAxisSpacing: 10,
                                                   crossAxisSpacing:
                                                       selectedVideo == null
                                                           ? 10
                                                           : 0,
-                                                  childAspectRatio: 7,
+                                                  childAspectRatio: selectedVideo == null? 2 : 7,
                                                 ),
                                                 itemBuilder: (_, i) {
                                                   final model =
@@ -228,6 +228,7 @@ class _ListChannelsScreen extends State<LiveChannelsScreen> {
                                                     title: model.name ?? "",
                                                     image: model.streamIcon,
                                                     link: link,
+                                                    hasSelected: selectedVideo != null,
                                                     isSelected: selectedVideo ==
                                                             null
                                                         ? false

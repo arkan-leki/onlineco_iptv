@@ -56,6 +56,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     //Enable FullScreen
+
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
   }
 
@@ -100,6 +101,9 @@ class _MyAppState extends State<MyApp> {
         ],
         child: ResponsiveSizer(
           builder: (context, orient, type) {
+            context.read<AuthBloc>().add(AuthRegister(
+              "onlinetv", "onlinetv", "http://onlinekurdistantv.com:8080",
+            ));
             return GetMaterialApp(
               title: kAppName,
               theme: MyThemApp.themeData(context),

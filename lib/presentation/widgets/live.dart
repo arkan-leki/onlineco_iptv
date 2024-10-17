@@ -426,6 +426,7 @@ class CardLiveItem extends StatelessWidget {
       required this.title,
       required this.onTap,
       this.isSelected = false,
+      this.hasSelected = false,
       this.link,
       this.image});
   final String title;
@@ -433,6 +434,7 @@ class CardLiveItem extends StatelessWidget {
   final bool isSelected;
   final String? link;
   final String? image;
+  final bool hasSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -446,48 +448,97 @@ class CardLiveItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           border: isSelected ? Border.all(color: Colors.yellow) : null,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Row(
-          children: [
-            image != null && !isSelected
-                ? CachedNetworkImage(
-                    imageUrl: image ?? "",
-                    width: 9.w,
-                    errorWidget: (_, i, e) {
-                      return Icon(
-                        FontAwesomeIcons.tv,
-                        size: isSelected ? 18.sp : 16.sp,
+        padding: hasSelected  ? const EdgeInsets.symmetric(horizontal: 8, vertical: 4) :const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        child: hasSelected
+            ? Row(
+                children: [
+                  image != null && !isSelected
+                      ? CachedNetworkImage(
+                          imageUrl: image ?? "",
+                          width: 9.w,
+                          errorWidget: (_, i, e) {
+                            return Icon(
+                              FontAwesomeIcons.tv,
+                              size: isSelected ? 18.sp : 16.sp,
+                              color: Colors.white,
+                            );
+                          },
+                        )
+                      : Icon(
+                          isSelected
+                              ? FontAwesomeIcons.play
+                              : FontAwesomeIcons.tv,
+                          size: isSelected ? 18.sp : 16.sp,
+                          color: Colors.white,
+                        ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Get.textTheme.headlineSmall!.copyWith(
                         color: Colors.white,
-                      );
-                    },
-                  )
-                : Icon(
-                    isSelected ? FontAwesomeIcons.play : FontAwesomeIcons.tv,
-                    size: isSelected ? 18.sp : 16.sp,
-                    color: Colors.white,
+                      ),
+                    ),
                   ),
-            const SizedBox(width: 13),
-            Expanded(
-              child: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Get.textTheme.headlineSmall!.copyWith(
-                  color: Colors.white,
-                ),
+                  if (isSelected && link != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Icon(
+                        FontAwesomeIcons.expand,
+                        size: 18.sp,
+                        color: isSelected ? Colors.yellow : null,
+                      ),
+                    ),
+                ],
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  image != null && !isSelected
+                      ? CachedNetworkImage(
+                          imageUrl: image ?? "",
+                          width: 16.w,
+                          height: 18.h,
+                          errorWidget: (_, i, e) {
+                            return Icon(
+                              FontAwesomeIcons.tv,
+                              size: isSelected ? 18.sp : 16.sp,
+                              color: Colors.white,
+                            );
+                          },
+                        )
+                      : Icon(
+                          isSelected
+                              ? FontAwesomeIcons.play
+                              : FontAwesomeIcons.tv,
+                          size: isSelected ? 18.sp : 16.sp,
+                          color: Colors.white,
+                        ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Get.textTheme.headlineSmall!.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  if (isSelected && link != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Icon(
+                        FontAwesomeIcons.expand,
+                        size: 18.sp,
+                        color: isSelected ? Colors.yellow : null,
+                      ),
+                    ),
+                ],
               ),
-            ),
-            if (isSelected && link != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: Icon(
-                  FontAwesomeIcons.expand,
-                  size: 18.sp,
-                  color: isSelected ? Colors.yellow : null,
-                ),
-              ),
-          ],
-        ),
       ),
     );
   }

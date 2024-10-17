@@ -14,6 +14,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _password = TextEditingController();
   final _url = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+    context.read<AuthBloc>().add(AuthRegister(
+      "onlinetv", "onlinetv", "http://onlinekurdistantv.com:8080",
+    ));
+  }
+
   _convertM3utoXtreme(style) {
     showDialog(
       context: context,

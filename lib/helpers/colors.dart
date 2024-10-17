@@ -1,9 +1,9 @@
 part of 'helpers.dart';
 
-const Color kColorPrimary = Color(0xFFBE7DFB);
+const Color kColorPrimary = Color.fromARGB(255, 98, 142, 193);
 const Color kColorPrimaryDark = Color(0xFF9E47FF);
 
-const Color kColorFocus = Color(0xFFBE7DFB);
+const Color kColorFocus = Color.fromARGB(255, 50, 113, 231);
 
 const Color kColorBack = Color(0xFF262435);
 const Color kColorBackDark = Color(0xFF1e182c);

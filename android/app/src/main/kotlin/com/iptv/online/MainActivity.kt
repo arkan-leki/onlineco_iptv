@@ -1,4 +1,4 @@
-package com.iptv.online
+package com.kit.online_iptv
 
 import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity

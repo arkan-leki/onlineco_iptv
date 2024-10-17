@@ -1,4 +1,4 @@
-package com.iptv.online
+package com.kit.online_iptv
 
 
 import android.app.Activity
